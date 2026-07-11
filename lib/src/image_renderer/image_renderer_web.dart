@@ -1,5 +1,20 @@
+/// Web platform implementation of the image renderer.
+///
+/// This library utilizes [Image.network] to render network images on web and
+/// WebAssembly (WASM) targets, fully bypassing native platform dependencies and 'dart:io'.
+library;
+
 import 'package:flutter/material.dart';
 
+/// Renders a network image on web platforms using standard browser HTTP caching.
+///
+/// * [url] is the dynamic, optimized target URL formatted for the web platform.
+/// * [width] represents the layout width constraint assigned to the image.
+/// * [height] represents the layout height constraint assigned to the image.
+/// * [fit] determines how the image fits into its layout constraints.
+/// * [placeholder] is an optional custom loader displayed while fetching the asset.
+/// * [errorWidget] is an optional custom fallback widget shown if image loading fails.
+/// * [fallbackUrl] is the original, raw image URL used as a recovery fallback path.
 Widget renderImage({
   required String url,
   required double? width,

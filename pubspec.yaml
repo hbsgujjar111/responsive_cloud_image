@@ -1,6 +1,6 @@
 name: responsive_cloud_image
 description: "A CDN-agnostic responsive image loader that dynamically calculates widget bounds and requests optimized images from Supabase, Cloudinary, Imgix, Unsplash, Shopify, and more."
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/hbsgujjar111/responsive_cloud_image
 repository: https://github.com/hbsgujjar111/responsive_cloud_image
 issue_tracker: https://github.com/hbsgujjar111/responsive_cloud_image/issues

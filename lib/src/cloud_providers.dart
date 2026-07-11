@@ -1,16 +1,54 @@
+/// Cloud storage and CDN provider configurations.
+///
+/// This library defines the supported CDN types and handles the URL string-manipulation
+/// algorithms for each of those endpoints.
+library;
+
+/// Supported cloud storage and CDN providers.
 enum CloudProvider {
+  /// Supabase Storage dynamic image resizing.
   supabase,
+
+  /// Appwrite Storage dynamic image resizing.
   appwrite,
+
+  /// Cloudinary image delivery network.
   cloudinary,
+
+  /// Imgix image processing CDN.
   imgix,
+
+  /// Unsplash dynamic image delivery.
   unsplash,
+
+  /// Shopify storefront CDN.
   shopify,
+
+  /// Sanity.io Content Lake CDN.
   sanity,
+
+  /// Custom user-defined image resizing scheme.
   custom,
+
+  /// Generic fallback (original unaltered URL).
   generic,
 }
 
+/// A utility adapter to format original image URLs into optimized CDN URLs.
 class CloudUrlAdapter {
+  // Private constructor prevents instantiation of this static utility class.
+  CloudUrlAdapter._();
+
+  /// Transforms the [originalUrl] using the rules of the selected [provider].
+  ///
+  /// Pass [width] and [height] representing the target physical size in pixels.
+  /// If [provider] is [CloudProvider.custom], supply [customBuilder].
+  ///
+  /// * [originalUrl] is the initial uncompressed raw image path.
+  /// * [provider] specifies the CDN host and its formatting engine.
+  /// * [width] represents the calculated target physical pixel width.
+  /// * [height] represents the calculated target physical pixel height.
+  /// * [customBuilder] is a callback triggered only if [provider] is [CloudProvider.custom].
   static String buildUrl({
     required String originalUrl,
     required CloudProvider provider,
