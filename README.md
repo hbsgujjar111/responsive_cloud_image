@@ -205,10 +205,7 @@ These are the configurable parameters available on the `ResponsiveCloudImage` wi
 
 Found a bug or want to improve this widget? Open an issue or pull request on GitHub:
 
-*
-
 *[github.com/hbsgujjar111/responsive_cloud_image](https://github.com/hbsgujjar111/responsive_cloud_image)
-**
 
 ---
 
