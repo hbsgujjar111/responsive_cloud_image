@@ -1,4 +1,9 @@
 include: package:flutter_lints/flutter.yaml
 
+linter:
+  rules:
+    # Keeps pana's documentation score at 100% as the API grows.
+    public_member_api_docs: true
+
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

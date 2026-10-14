@@ -4,5 +4,6 @@
 /// to request optimized image sizes from cloud storage providers and CDNs.
 library;
 
-export 'src/cloud_providers.dart';
+export 'src/cloud_provider.dart';
+export 'src/cloud_url_adapter.dart';
 export 'src/responsive_cloud_image_widget.dart';

@@ -15,17 +15,21 @@ import 'package:flutter/material.dart';
 /// * [width] represents the layout width constraint assigned to the image.
 /// * [height] represents the layout height constraint assigned to the image.
 /// * [fit] determines how the image fits into its layout constraints.
+/// * [alignment] positions the image inside its layout box.
 /// * [placeholder] is an optional custom loader displayed while fetching the asset.
 /// * [errorWidget] is an optional custom fallback widget shown if image loading fails.
 /// * [fallbackUrl] is the original, raw image URL used as a recovery fallback path.
+/// * [httpHeaders] are sent with every image request.
 Widget renderImage({
   required String url,
-  required double? width,
-  required double? height,
+  required double width,
+  required double height,
   required BoxFit fit,
+  required Alignment alignment,
   required Widget? placeholder,
   required Widget? errorWidget,
   required String fallbackUrl,
+  required Map<String, String>? httpHeaders,
 }) {
   throw UnsupportedError(
     'Cannot render image without platform implementation.',

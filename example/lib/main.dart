@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_cloud_image/responsive_cloud_image.dart';
 
+// Supabase, Appwrite and Sanity serve images from your own project, so there
+// is no shared demo file. Paste a public image URL from your own project to
+// see each card load. While a constant is empty, its card shows a hint.
+const String _supabaseImageUrl = '';
+const String _appwriteImageUrl = '';
+const String _sanityImageUrl = '';
+
 void main() {
   runApp(const ResponsiveCloudImageDemoApp());
 }
@@ -123,10 +130,14 @@ class DemoGalleryScreen extends StatelessWidget {
               title: '7. Supabase Storage Public Bucket',
               subtitle:
                   'Storage API Query Transform (Rewriting /object/ to /render/image/)',
-              child: const ResponsiveCloudImage(
-                imageUrl:
-                    'https://jetviiwsgdxevkjmfaez.supabase.co/storage/v1/object/public/blogfotos/484374992_24001816956086063_6417997975024413331_n.jpg',
+              child: _imageOrHint(
+                url: _supabaseImageUrl,
                 provider: CloudProvider.supabase,
+                hint:
+                    'Set _supabaseImageUrl in example/lib/main.dart to a '
+                    'public object URL from your Supabase project. '
+                    'Transformations need a paid plan; on a free plan the '
+                    'original image is shown instead.',
               ),
             ),
 
@@ -135,10 +146,13 @@ class DemoGalleryScreen extends StatelessWidget {
               title: '8. Appwrite Cloud Storage',
               subtitle:
                   'Storage API Preview Transform (Authorized with ?project=)',
-              child: const ResponsiveCloudImage(
-                imageUrl:
-                    'https://cloud.appwrite.io/v1/storage/buckets/6565a07a7aa848f1fceb/files/6565a234aa631a6f4488/preview?project=6565a2d0eb5f483b3203',
+              child: _imageOrHint(
+                url: _appwriteImageUrl,
                 provider: CloudProvider.appwrite,
+                hint:
+                    'Set _appwriteImageUrl in example/lib/main.dart to a '
+                    '/preview URL from an Appwrite bucket that gives the '
+                    '"Any" role Read permission.',
               ),
             ),
 
@@ -146,16 +160,27 @@ class DemoGalleryScreen extends StatelessWidget {
             _buildImageCard(
               title: '9. Sanity.io Content Lake CDN',
               subtitle: 'Content API Query Transform (?w=x&h=y)',
-              child: const ResponsiveCloudImage(
-                imageUrl:
-                    'https://cdn.sanity.io/images/zp7mbokg/production/G3i4emG6B8JnTmGoN0UjgAp8-300x450.jpg',
+              child: _imageOrHint(
+                url: _sanityImageUrl,
                 provider: CloudProvider.sanity,
+                hint:
+                    'Set _sanityImageUrl in example/lib/main.dart to a '
+                    'cdn.sanity.io image URL from a public dataset.',
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _imageOrHint({
+    required String url,
+    required CloudProvider provider,
+    required String hint,
+  }) {
+    if (url.isEmpty) return _AddUrlHint(message: hint);
+    return ResponsiveCloudImage(imageUrl: url, provider: provider);
   }
 
   Widget _buildImageCard({
@@ -209,6 +234,34 @@ class DemoGalleryScreen extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Shown in place of an image until the matching URL constant is filled in.
+class _AddUrlHint extends StatelessWidget {
+  const _AddUrlHint({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0xFF1B1B20),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 12,
+              height: 1.5,
+            ),
+          ),
         ),
       ),
     );
