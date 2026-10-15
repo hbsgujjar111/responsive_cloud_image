@@ -9,7 +9,9 @@ import '../url_sizing.dart';
 ///
 /// Appwrite crops when both dimensions are sent and keeps the aspect ratio when
 /// only one is, so the modes that must not crop send a single dimension.
-String appwriteUrl(Uri uri, ImageSize size, BoxFit fit) {
+///
+/// A non-null [quality] is sent as `quality`.
+String appwriteUrl(Uri uri, ImageSize size, BoxFit fit, {int? quality}) {
   final Map<String, dynamic> query = <String, dynamic>{
     ...uri.queryParametersAll,
   };
@@ -29,6 +31,8 @@ String appwriteUrl(Uri uri, ImageSize size, BoxFit fit) {
       query['height'] = '${size.height}';
       query.putIfAbsent('gravity', () => 'center');
   }
+
+  if (quality != null) query['quality'] = '$quality';
 
   return uri.replace(queryParameters: query).toString();
 }

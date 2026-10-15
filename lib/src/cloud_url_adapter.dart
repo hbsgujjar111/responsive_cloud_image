@@ -43,6 +43,10 @@ class CloudUrlAdapter {
   /// * [sizeStep] is the step, in pixels, that requested sizes are rounded up
   ///   to. Defaults to 1 (exact size).
   /// * [maxDimension] is an optional cap, in pixels, for the larger side.
+  /// * [quality] is an optional output quality from 1 to 100. It is sent to
+  ///   Supabase (limited to 20-100), Appwrite, Cloudinary, Imgix, Unsplash and
+  ///   Sanity, and ignored by Shopify, [CloudProvider.custom] and
+  ///   [CloudProvider.generic].
   /// * [customBuilder] is a callback triggered only if [provider] is
   ///   [CloudProvider.custom]. It receives the final whole-pixel size. An
   ///   exception it throws is reported with [FlutterError.reportError] and the
@@ -55,6 +59,7 @@ class CloudUrlAdapter {
     BoxFit fit = BoxFit.cover,
     int sizeStep = 1,
     int? maxDimension,
+    int? quality,
     String? Function(String url, double width, double height)? customBuilder,
   }) {
     if (originalUrl.isEmpty ||
@@ -79,14 +84,16 @@ class CloudUrlAdapter {
     final Uri? uri = Uri.tryParse(originalUrl);
     if (uri == null) return originalUrl;
 
+    final int? q = quality?.clamp(1, 100);
+
     final String? built = switch (provider) {
-      CloudProvider.supabase => supabaseUrl(uri, size, fit),
-      CloudProvider.appwrite => appwriteUrl(uri, size, fit),
-      CloudProvider.cloudinary => cloudinaryUrl(uri, size, fit),
+      CloudProvider.supabase => supabaseUrl(uri, size, fit, quality: q),
+      CloudProvider.appwrite => appwriteUrl(uri, size, fit, quality: q),
+      CloudProvider.cloudinary => cloudinaryUrl(uri, size, fit, quality: q),
       CloudProvider.shopify => shopifyUrl(uri, size, fit),
       CloudProvider.imgix ||
       CloudProvider.unsplash ||
-      CloudProvider.sanity => imgixStyleUrl(uri, size, fit),
+      CloudProvider.sanity => imgixStyleUrl(uri, size, fit, quality: q),
       CloudProvider.custom || CloudProvider.generic => null,
     };
     return built ?? originalUrl;

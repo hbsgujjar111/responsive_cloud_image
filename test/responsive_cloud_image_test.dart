@@ -53,6 +53,8 @@ void main() {
       expect(widget.errorWidget, isNull);
       expect(widget.httpHeaders, isNull);
       expect(widget.semanticLabel, isNull);
+      expect(widget.quality, isNull);
+      expect(widget.cacheKey, isNull);
     });
 
     test('custom provider without a builder fails in debug mode', () {
@@ -61,6 +63,24 @@ void main() {
           imageUrl: _unsplash,
           provider: CloudProvider.custom,
         ),
+        throwsAssertionError,
+      );
+    });
+
+    test('quality outside 1-100 fails in debug mode', () {
+      expect(
+        () => ResponsiveCloudImage(imageUrl: _unsplash, quality: 0),
+        throwsAssertionError,
+      );
+      expect(
+        () => ResponsiveCloudImage(imageUrl: _unsplash, quality: 101),
+        throwsAssertionError,
+      );
+    });
+
+    test('an empty cacheKey fails in debug mode', () {
+      expect(
+        () => ResponsiveCloudImage(imageUrl: _unsplash, cacheKey: ''),
         throwsAssertionError,
       );
     });
@@ -444,6 +464,111 @@ void main() {
       );
 
       expect(find.byType(CachedNetworkImage), findsNothing);
+    });
+  });
+
+  group('quality and cacheKey', () {
+    // 100x100 logical at 2x is 200x200 physical; unsplash rounds to 50.
+    Widget box(ResponsiveCloudImage image) =>
+        SizedBox(width: 100, height: 100, child: image);
+
+    testWidgets('quality is sent to the CDN as q', (WidgetTester tester) async {
+      await _pump(
+        tester,
+        box(
+          const ResponsiveCloudImage(
+            imageUrl: _unsplash,
+            provider: CloudProvider.unsplash,
+            quality: 60,
+          ),
+        ),
+      );
+      expect(_query(_image(tester).imageUrl)['q'], '60');
+    });
+
+    testWidgets('without cacheKey the image uses the URL as its key', (
+      WidgetTester tester,
+    ) async {
+      await _pump(
+        tester,
+        box(
+          const ResponsiveCloudImage(
+            imageUrl: _unsplash,
+            provider: CloudProvider.unsplash,
+          ),
+        ),
+      );
+      expect(_image(tester).cacheKey, isNull);
+    });
+
+    testWidgets('cacheKey gets size, fit and quality added', (
+      WidgetTester tester,
+    ) async {
+      await _pump(
+        tester,
+        box(
+          const ResponsiveCloudImage(
+            imageUrl: _unsplash,
+            provider: CloudProvider.unsplash,
+            cacheKey: 'photo-1',
+            quality: 60,
+          ),
+        ),
+      );
+      expect(_image(tester).cacheKey, 'photo-1|200x200|cover|q60');
+    });
+
+    testWidgets('a different size gives a different key', (
+      WidgetTester tester,
+    ) async {
+      await _pump(
+        tester,
+        const SizedBox(
+          width: 150,
+          height: 100,
+          child: ResponsiveCloudImage(
+            imageUrl: _unsplash,
+            provider: CloudProvider.unsplash,
+            cacheKey: 'photo-1',
+          ),
+        ),
+      );
+      expect(_image(tester).cacheKey, 'photo-1|300x200|cover|qnull');
+    });
+
+    testWidgets('an untransformed request uses the original key', (
+      WidgetTester tester,
+    ) async {
+      await _pump(
+        tester,
+        box(
+          const ResponsiveCloudImage(imageUrl: _unsplash, cacheKey: 'photo-1'),
+        ),
+      );
+      expect(_image(tester).cacheKey, 'photo-1|original');
+    });
+
+    testWidgets('the fallback request uses the original key', (
+      WidgetTester tester,
+    ) async {
+      await _pump(
+        tester,
+        box(
+          const ResponsiveCloudImage(
+            imageUrl: _unsplash,
+            provider: CloudProvider.unsplash,
+            cacheKey: 'photo-1',
+          ),
+        ),
+      );
+
+      final context = tester.element(find.byType(CachedNetworkImage));
+      final first = _image(tester);
+      final retry =
+          first.errorWidget!(context, first.imageUrl, Exception('x'))
+              as CachedNetworkImage;
+      expect(retry.imageUrl, _unsplash);
+      expect(retry.cacheKey, 'photo-1|original');
     });
   });
 }

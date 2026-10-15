@@ -11,6 +11,7 @@ String _build(
   BoxFit fit = BoxFit.cover,
   int sizeStep = 1,
   int? maxDimension,
+  int? quality,
   String? Function(String url, double width, double height)? custom,
 }) {
   return CloudUrlAdapter.buildUrl(
@@ -21,6 +22,7 @@ String _build(
     fit: fit,
     sizeStep: sizeStep,
     maxDimension: maxDimension,
+    quality: quality,
     customBuilder: custom,
   );
 }
@@ -532,5 +534,95 @@ void main() {
         expect(reported.single.exception, isA<StateError>());
       },
     );
+  });
+
+  group('quality', () {
+    _queryStyle.forEach((provider, url) {
+      test('${provider.name}: quality is sent as q', () {
+        expect(_query(_build(url, provider, quality: 80))['q'], '80');
+      });
+    });
+
+    test('no quality means no quality parameter on any provider', () {
+      for (final provider in CloudProvider.values) {
+        final url = switch (provider) {
+          CloudProvider.supabase => _supabase,
+          CloudProvider.appwrite => _appwrite,
+          CloudProvider.cloudinary => _cloudinary,
+          CloudProvider.shopify => _shopify,
+          _ => _queryStyle[provider] ?? _queryStyle.values.first,
+        };
+        final result = _build(url, provider, custom: (u, w, h) => u);
+        expect(result, isNot(contains('quality')), reason: provider.name);
+        expect(result, isNot(contains('q=')), reason: provider.name);
+        expect(result, isNot(contains('q_')), reason: provider.name);
+      }
+    });
+
+    test('supabase: quality is sent and limited to 20-100', () {
+      expect(
+        _query(
+          _build(_supabase, CloudProvider.supabase, quality: 80),
+        )['quality'],
+        '80',
+      );
+      expect(
+        _query(
+          _build(_supabase, CloudProvider.supabase, quality: 5),
+        )['quality'],
+        '20',
+      );
+      expect(
+        _query(
+          _build(_supabase, CloudProvider.supabase, quality: 150),
+        )['quality'],
+        '100',
+      );
+    });
+
+    test('appwrite: quality is sent and the project parameter is kept', () {
+      final query = _query(
+        _build(_appwrite, CloudProvider.appwrite, quality: 70),
+      );
+      expect(query['quality'], '70');
+      expect(query['project'], 'p1');
+    });
+
+    test('cloudinary: quality is appended to the transformation', () {
+      final result = _build(_cloudinary, CloudProvider.cloudinary, quality: 70);
+      expect(
+        result,
+        'https://res.cloudinary.com/demo/image/upload/w_300,h_200,c_fill,q_70/sample.jpg',
+      );
+    });
+
+    test('shopify and generic ignore quality', () {
+      expect(
+        _build(_shopify, CloudProvider.shopify, quality: 70),
+        _build(_shopify, CloudProvider.shopify),
+      );
+      expect(
+        _build(
+          _queryStyle[CloudProvider.unsplash]!,
+          CloudProvider.generic,
+          quality: 70,
+        ),
+        _queryStyle[CloudProvider.unsplash]!,
+      );
+    });
+
+    test('out-of-range quality is limited to 1-100', () {
+      final url = _queryStyle[CloudProvider.imgix]!;
+      expect(_query(_build(url, CloudProvider.imgix, quality: 0))['q'], '1');
+      expect(
+        _query(_build(url, CloudProvider.imgix, quality: 500))['q'],
+        '100',
+      );
+    });
+
+    test('quality overrides a q already in the URL', () {
+      final url = '${_queryStyle[CloudProvider.imgix]!}?q=10';
+      expect(_query(_build(url, CloudProvider.imgix, quality: 90))['q'], '90');
+    });
   });
 }

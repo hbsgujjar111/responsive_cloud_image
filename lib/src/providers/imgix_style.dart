@@ -6,7 +6,9 @@ import 'package:flutter/painting.dart' show BoxFit;
 import '../url_sizing.dart';
 
 /// Adds `w`, `h` and `fit` to [uri], keeping every other query parameter.
-String imgixStyleUrl(Uri uri, ImageSize size, BoxFit fit) {
+///
+/// A non-null [quality] is sent as `q`.
+String imgixStyleUrl(Uri uri, ImageSize size, BoxFit fit, {int? quality}) {
   final Map<String, dynamic> query = <String, dynamic>{
     ...uri.queryParametersAll,
   };
@@ -25,6 +27,8 @@ String imgixStyleUrl(Uri uri, ImageSize size, BoxFit fit) {
       query['h'] = '${size.height}';
       query['fit'] = _fitMode(fit);
   }
+
+  if (quality != null) query['q'] = '$quality';
 
   return uri.replace(queryParameters: query).toString();
 }

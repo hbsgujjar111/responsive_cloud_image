@@ -23,6 +23,8 @@ import 'default_widgets.dart';
 /// * [fallbackUrl] is the original, raw image URL used as a recovery fallback path.
 /// * [httpHeaders] are sent with every image request. On the web the server
 ///   must allow them through CORS.
+/// * [cacheKey] is ignored on the web, where the browser caches by URL.
+/// * [fallbackCacheKey] is ignored on the web.
 Widget renderImage({
   required String url,
   required double width,
@@ -33,6 +35,8 @@ Widget renderImage({
   required Widget? errorWidget,
   required String fallbackUrl,
   required Map<String, String>? httpHeaders,
+  required String? cacheKey,
+  required String? fallbackCacheKey,
 }) {
   return Image.network(
     url,
@@ -57,6 +61,8 @@ Widget renderImage({
           errorWidget: errorWidget,
           fallbackUrl: fallbackUrl,
           httpHeaders: httpHeaders,
+          cacheKey: fallbackCacheKey,
+          fallbackCacheKey: fallbackCacheKey,
         );
       }
       return errorWidget ?? buildDefaultError(width, height);

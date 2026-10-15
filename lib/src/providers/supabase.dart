@@ -7,10 +7,13 @@ import '../url_sizing.dart';
 /// Rewrites a public Supabase Storage URL to its image-transformation endpoint
 /// and adds `width`, `height` and `resize`.
 ///
+/// A non-null [quality] is sent as `quality`, limited to Supabase's documented
+/// range of 20 to 100.
+///
 /// Returns `null` (use the original URL) for anything that is not a public
 /// object: signed and authenticated URLs carry their access token, and signed
 /// transformations are fixed inside that token, so they cannot be resized here.
-String? supabaseUrl(Uri uri, ImageSize size, BoxFit fit) {
+String? supabaseUrl(Uri uri, ImageSize size, BoxFit fit, {int? quality}) {
   String path = uri.path;
   if (path.contains('/object/public/')) {
     path = path.replaceFirst('/object/public/', '/render/image/public/');
@@ -36,6 +39,8 @@ String? supabaseUrl(Uri uri, ImageSize size, BoxFit fit) {
       query['height'] = '${size.height}';
       query['resize'] = _resizeMode(fit);
   }
+
+  if (quality != null) query['quality'] = '${quality.clamp(20, 100)}';
 
   return uri.replace(path: path, queryParameters: query).toString();
 }

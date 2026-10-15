@@ -6,13 +6,19 @@ import '../url_sizing.dart';
 
 /// Inserts a transformation segment right after `/upload/`.
 ///
+/// A non-null [quality] is appended to the segment as `q_<quality>`.
+///
 /// Returns `null` (use the original URL) when the URL has no `upload` segment.
-String? cloudinaryUrl(Uri uri, ImageSize size, BoxFit fit) {
+String? cloudinaryUrl(Uri uri, ImageSize size, BoxFit fit, {int? quality}) {
   final List<String> segments = List<String>.of(uri.pathSegments);
   final int uploadIndex = segments.indexOf('upload');
   if (uploadIndex == -1) return null;
 
-  segments.insert(uploadIndex + 1, _transformation(size, fit));
+  final String transformation = _transformation(size, fit);
+  segments.insert(
+    uploadIndex + 1,
+    quality == null ? transformation : '$transformation,q_$quality',
+  );
   return uri.replace(pathSegments: segments).toString();
 }
 

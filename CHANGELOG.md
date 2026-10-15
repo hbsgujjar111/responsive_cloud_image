@@ -1,3 +1,21 @@
+## 1.2.0
+
+### Added
+
+* `quality` (1-100): optional output quality requested from the CDN. It is sent as `quality` to
+  Supabase (limited to the documented 20-100 range) and Appwrite, as `q` to Imgix, Unsplash and Sanity,
+  and as `q_<value>` to Cloudinary. Shopify, `CloudProvider.custom` and `CloudProvider.generic`
+  ignore it. When it is not set, nothing changes.
+* `cacheKey`: a stable identity for the disk cache on native platforms, for images whose URL carries a
+  changing part such as the token of a signed URL. The size, `fit` and `quality` are added to the key
+  automatically, so different renditions never overwrite each other. The original-URL fallback gets its
+  own key. Ignored on the web, where the browser caches by URL.
+* `CloudUrlAdapter.buildUrl` accepts the same `quality` argument.
+
+### Notes
+
+* Nothing changes for existing code: both new parameters are optional and default to `null`.
+
 ## 1.1.0
 
 ### Fixed

@@ -20,6 +20,8 @@ import 'package:flutter/material.dart';
 /// * [errorWidget] is an optional custom fallback widget shown if image loading fails.
 /// * [fallbackUrl] is the original, raw image URL used as a recovery fallback path.
 /// * [httpHeaders] are sent with every image request.
+/// * [cacheKey] is the disk-cache key used for [url] (native only).
+/// * [fallbackCacheKey] is the disk-cache key used for [fallbackUrl] (native only).
 Widget renderImage({
   required String url,
   required double width,
@@ -30,6 +32,8 @@ Widget renderImage({
   required Widget? errorWidget,
   required String fallbackUrl,
   required Map<String, String>? httpHeaders,
+  required String? cacheKey,
+  required String? fallbackCacheKey,
 }) {
   throw UnsupportedError(
     'Cannot render image without platform implementation.',

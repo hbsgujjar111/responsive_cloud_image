@@ -52,6 +52,9 @@ specific cloud hosting provider you are using.
   endpoints.
 - **Automatic fallback:** If the optimized image fails to load, the original URL is tried once
   before your error widget is shown.
+- **Quality control:** Optionally request a specific output quality from the CDN with `quality`.
+- **Stable cache keys:** Give signed URLs a `cacheKey` so a changing token does not download the same
+  picture again (native platforms).
 - **Private buckets:** Send your own HTTP headers (for example `Authorization`) with every request.
 - **Caching:** Powered by `cached_network_image` for disk caching on native platforms.
 
@@ -63,7 +66,7 @@ Add the package dependency to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  responsive_cloud_image: ^1.1.0
+  responsive_cloud_image: ^1.2.0
 ```
 
 Then run:
@@ -221,6 +224,8 @@ These are the configurable parameters available on the `ResponsiveCloudImage` wi
 | **`alignment`**        | `Alignment`                                 | `Alignment.center`      | How the image is aligned inside its box.                                                                            |
 | **`sizeStep`**         | `int`                                       | `50`                    | Requested sizes are rounded up to a multiple of this many physical pixels. Use `1` for the exact size.              |
 | **`maxDimension`**     | `int?`                                      | `null`                  | Caps the larger side of the request, in physical pixels.                                                            |
+| **`quality`**          | `int?`                                      | `null`                  | Output quality from 1 to 100 requested from the CDN. Ignored by Shopify, custom and generic.                        |
+| **`cacheKey`**         | `String?`                                   | `null`                  | Stable disk-cache identity for signed URLs (native only). Size, fit and quality are added automatically.            |
 | **`customUrlBuilder`** | `String? Function(String, double, double)?` | `null`                  | Custom builder callback. **Required** only if `provider` is `CloudProvider.custom`.                                 |
 | **`placeholder`**      | `Widget?`                                   | `null`                  | Displayed while the image is downloading. Defaults to a themed spinner.                                             |
 | **`errorWidget`**      | `Widget?`                                   | `null`                  | Displayed if the image fails to load, after the original URL was tried once.                                        |
@@ -275,6 +280,11 @@ every mode except `fitWidth` and `fitHeight`.
 - **Signed CDN URLs** (for example Imgix URLs with an `s=` signature): adding size parameters
   invalidates the signature. Use `CloudProvider.generic`, or `CloudProvider.custom` with your own
   signing.
+- **Quality:** Supabase accepts 20-100, so lower values are raised to 20. Cloudinary's `q_<value>` is
+  added to the same transformation segment.
+- **Signed URLs and the cache:** set `cacheKey` to a value that identifies the picture (for example
+  the file path), so the cache does not treat every new token as a new image. It has no effect on the
+  web, where the browser caches by URL.
 - **Fallback:** if the optimized request fails (for example the CDN rejects it), the original URL is
   requested once. That image is not resized, so it may be large.
 

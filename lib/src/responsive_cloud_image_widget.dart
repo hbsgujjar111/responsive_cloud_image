@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'cloud_provider.dart';
 import 'cloud_url_adapter.dart';
 import 'image_renderer/image_renderer.dart';
+import 'url_sizing.dart';
 
 /// A widget that dynamically resizes image requests based on layout bounds.
 ///
@@ -53,6 +54,23 @@ class ResponsiveCloudImage extends StatelessWidget {
   /// Other providers default to 4096 px.
   final int? maxDimension;
 
+  /// Optional output quality from 1 to 100 requested from the CDN.
+  ///
+  /// Sent to Supabase (limited to 20-100), Appwrite, Cloudinary, Imgix, Unsplash
+  /// and Sanity. Ignored by Shopify, [CloudProvider.custom] and
+  /// [CloudProvider.generic]. When null, the CDN's own default is used.
+  final int? quality;
+
+  /// Optional stable identity of the image, used for the disk cache on native
+  /// platforms.
+  ///
+  /// Use it when [imageUrl] carries a changing part, such as the token of a
+  /// signed URL, so the same picture is not downloaded again each time the URL
+  /// changes. The size, fit and [quality] are added to the key automatically, so
+  /// different renditions never overwrite each other. Ignored on the web, where
+  /// the browser caches by URL.
+  final String? cacheKey;
+
   /// Optional custom builder callback required if [provider] is set to [CloudProvider.custom].
   final String? Function(String url, double width, double height)?
   customUrlBuilder;
@@ -78,6 +96,8 @@ class ResponsiveCloudImage extends StatelessWidget {
   /// * [alignment] positions the image in its box. Defaults to [Alignment.center].
   /// * [sizeStep] is the rounding step for requested sizes. Defaults to 50.
   /// * [maxDimension] optionally caps the requested size.
+  /// * [quality] optionally sets the CDN output quality (1-100).
+  /// * [cacheKey] optionally sets a stable disk-cache identity (native only).
   /// * [customUrlBuilder] is required only if [provider] is [CloudProvider.custom].
   /// * [placeholder] is displayed while fetching the network asset.
   /// * [errorWidget] is shown if network or resizing transformations fail.
@@ -91,6 +111,8 @@ class ResponsiveCloudImage extends StatelessWidget {
     this.alignment = Alignment.center,
     this.sizeStep = 50,
     this.maxDimension,
+    this.quality,
+    this.cacheKey,
     this.customUrlBuilder,
     this.placeholder,
     this.errorWidget,
@@ -104,6 +126,14 @@ class ResponsiveCloudImage extends StatelessWidget {
        assert(
          maxDimension == null || maxDimension > 0,
          'maxDimension must be greater than 0.',
+       ),
+       assert(
+         quality == null || (quality >= 1 && quality <= 100),
+         'quality must be between 1 and 100.',
+       ),
+       assert(
+         cacheKey == null || cacheKey != '',
+         'cacheKey must not be empty.',
        );
 
   @override
@@ -134,8 +164,30 @@ class ResponsiveCloudImage extends StatelessWidget {
           fit: fit,
           sizeStep: sizeStep,
           maxDimension: maxDimension,
+          quality: quality,
           customBuilder: customUrlBuilder,
         );
+
+        final String? key = cacheKey;
+        String? primaryKey;
+        String? fallbackKey;
+        if (key != null) {
+          fallbackKey = '$key|original';
+          primaryKey = fallbackKey;
+          if (optimizedUrl != imageUrl) {
+            final ImageSize? size = resolveImageSize(
+              provider: provider,
+              width: logicalWidth * pixelRatio,
+              height: logicalHeight * pixelRatio,
+              sizeStep: sizeStep,
+              maxDimension: maxDimension,
+            );
+            if (size != null) {
+              primaryKey =
+                  '$key|${size.width}x${size.height}|${fit.name}|q$quality';
+            }
+          }
+        }
 
         // Call the conditional renderer to load the best platform-native widget
         final Widget image = renderImage(
@@ -148,6 +200,8 @@ class ResponsiveCloudImage extends StatelessWidget {
           errorWidget: errorWidget,
           fallbackUrl: imageUrl,
           httpHeaders: httpHeaders,
+          cacheKey: primaryKey,
+          fallbackCacheKey: fallbackKey,
         );
 
         final String? label = semanticLabel;
